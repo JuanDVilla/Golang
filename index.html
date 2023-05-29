@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página de Búsqueda</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">  
+    <div class="container mx-auto py-6">
+      <h1 class="text-3xl font-bold text-center text-blue-500">E-MAIL</h1>
+    </div>
+    <div class="container mx-auto py-6">
+      <div class="flex items-center">
+        <input v-model="field" type="text" class="w-1/10 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Campo a buscar">
+        <input v-model="term" type="text" class="w-1/4 px-4 py-2 ml-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Dato a buscar">
+        <select v-model="index" class="ml-2 block appearance-none w-1/10 py-2 px-4 pr-8 leading-tight bg-white border border-gray-300 rounded shadow focus:outline-none focus:bg-white focus:border-gray-500">
+          <option v-for="option in options" v-bind:key="option.id" v-bind:value="option.id">{{option.description}}</option>
+        </select>
+
+        <button v-on:click="enviar" class="px-4 py-2 ml-2 font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Enviar</button>
+        <input v-model="inicio" type="hidden">
+
+      </div>
+    </div>    
+    <div class="container mx-auto py-6 overflow-x-auto">
+      <table class="w-full border border-gray-300">
+        <thead>
+          <tr>
+            <th class="py-3 px-6 border border-gray-500 font-bold bg-gray-400">Subject</th>
+            <th class="py-3 px-6 border border-gray-500 font-bold bg-gray-400">From</th>
+            <th class="py-3 px-6 border border-gray-500 font-bold bg-gray-400">To</th>
+            <th class="py-3 px-6 border border-gray-500 font-bold bg-gray-400">Body</th>          
+          </tr>
+        </thead>
+        <tbody v-for="post in posts" :key="post.To">
+          <tr>
+            <td class="px-6 py-4 border border-gray-500 bg-blue-200">{{ post.Subject }}</td>
+            <td class="px-6 py-4 border border-gray-500 bg-blue-200">{{ post.From }}</td>
+            <td class="px-6 py-4 border border-gray-500 bg-blue-200">{{ post.To }}</td>
+            <td class="px-6 py-4 border border-gray-500 bg-blue-200">{{ post.body }}</td>          
+          </tr>        
+        </tbody>
+      </table>    
+    </div>
+  </div>
+</body>
+</html>
+
+<script type="module">
+  const { createApp } = Vue
+
+  createApp({
+    data() {
+      return {
+        field: "",
+        term: "",
+        inicio: "0",
+        index: 'inbox',
+        options: [
+          {
+            id : 'inbox',
+            description : 'Seleccione'
+          },
+          {
+            id : 'inbox',
+            description : 'Inbox'
+          },
+          {
+            id : 'deleted_items',
+            description : 'Deleted'
+          },
+          {
+            id : 'sent_items',
+            description : 'Sent'
+          },
+        ],
+        posts: []
+      };
+    },
+
+    methods: {
+      enviar() {
+        let datos = {field: this.field, term: this.term, inicio: this.inicio};
+        let url = "/search/" + this.index;
+        let SendPost = {method: 'POST', body: JSON.stringify(datos),headers: {'Content-Type': 'application/json'}};
+
+        fetch(url, SendPost)
+          .then(response => response.json())
+          .then(data => this.posts = data)
+          .catch(error => {console.error(error);});
+      }
+    }
+  }).mount("#app");
+
+</script>
