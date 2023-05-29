@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Inbox struct {
@@ -70,7 +71,7 @@ type Source struct {
 type Request struct {
 	Field string `json:"field"`
 	Term string `json:"term"`
-	Inicio string `json:"inicio"`
+	Page string `json:"page"`
 }
 
 func injeccion(w http.ResponseWriter, r *http.Request) {
@@ -183,12 +184,20 @@ func search(w http.ResponseWriter, r *http.Request) {
 	index := chi.URLParam(r, "index")
 	field := data.Field
 	term := data.Term
-	inicio := data.Inicio
+	page := data.Page
+
+	pageNum, err := strconv.Atoi(page)
+	if err != nil {
+		fmt.Println("Error al convertir la cadena a entero:", err)
+		return
+	}
+
+	max := pageNum * 5
 
 	field = strings.TrimSpace(field)
 	term = strings.TrimSpace(term)
 
-	InfoInbox := get_search(index, field, term, inicio)
+	InfoInbox := get_search(index, field, term, strconv.Itoa(max))
 
 	Data := []Source{}
 
@@ -207,16 +216,16 @@ func search(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonBytes)
 }
 
-func get_search(Index, Field, Term, init string) Inbox {
+func get_search(Index, Field, Term, Max string) Inbox {
 	index := Index
 	field := Field
 	term := Term
-	inicio := init;
+	max := Max
 
 	query := `{
 		"_source": [],
-		"from": `+inicio+`,
-        "max_results": 10,
+		"from": 0,
+        "max_results": `+max+`,
         "query": 
 		{
 			"field": "`+field+`",
